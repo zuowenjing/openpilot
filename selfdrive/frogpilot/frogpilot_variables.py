@@ -141,6 +141,8 @@ class FrogPilotVariables:
     if toggle.conditional_experimental_mode:
       self.params.put_bool("ExperimentalMode", True)
 
+    toggle.current_holiday_theme = self.params.get("CurrentHolidayTheme", encoding='utf-8') if self.params.get_bool("HolidayThemes") else None
+
     curve_speed_controller = toggle.openpilot_longitudinal and self.params.get_bool("CurveSpeedControl")
     toggle.map_turn_speed_controller = curve_speed_controller and self.params.get_bool("MTSCEnabled")
     toggle.mtsc_curvature_check = toggle.map_turn_speed_controller and self.params.get_bool("MTSCCurvatureCheck")
@@ -149,10 +151,11 @@ class FrogPilotVariables:
     toggle.turn_aggressiveness = self.params.get_int("TurnAggressiveness") / 100. if curve_speed_controller else 1
 
     custom_alerts = self.params.get_bool("CustomAlerts")
-    toggle.goat_scream = custom_alerts and self.params.get_bool("GoatScream")
+    toggle.goat_scream = toggle.current_holiday_theme is None and custom_alerts and self.params.get_bool("GoatScream")
     toggle.green_light_alert = custom_alerts and self.params.get_bool("GreenLightAlert")
     toggle.lead_departing_alert = custom_alerts and self.params.get_bool("LeadDepartingAlert")
     toggle.loud_blindspot_alert = custom_alerts and self.params.get_bool("LoudBlindspotAlert")
+    toggle.speed_limit_alert = custom_alerts and self.params.get_bool("SpeedLimitChangedAlert")
 
     toggle.custom_personalities = toggle.openpilot_longitudinal and self.params.get_bool("CustomPersonalities")
     aggressive_profile = toggle.custom_personalities and self.params.get_bool("AggressivePersonalityProfile")
@@ -190,8 +193,8 @@ class FrogPilotVariables:
     toggle.blind_spot_path = custom_paths and self.params.get_bool("BlindSpotPath")
 
     developer_ui = self.params.get_bool("DeveloperUI")
-    show_lateral = developer_ui and self.params.get_bool("LateralMetrics")
-    toggle.adjacent_path_metrics = show_lateral and self.params.get_bool("AdjacentPathMetrics")
+    lateral_metrics = developer_ui and self.params.get_bool("LateralMetrics")
+    toggle.adjacent_path_metrics = lateral_metrics and self.params.get_bool("AdjacentPathMetrics")
 
     toggle.device_management = self.params.get_bool("DeviceManagement")
     device_shutdown_setting = self.params.get_int("DeviceShutdown") if toggle.device_management else 33
@@ -203,9 +206,6 @@ class FrogPilotVariables:
     toggle.experimental_mode_via_press = toggle.openpilot_longitudinal and self.params.get_bool("ExperimentalModeActivation")
     toggle.experimental_mode_via_distance = toggle.experimental_mode_via_press and self.params.get_bool("ExperimentalModeViaDistance")
     toggle.experimental_mode_via_lkas = not toggle.always_on_lateral_lkas and toggle.experimental_mode_via_press and car_make != "subaru" and self.params.get_bool("ExperimentalModeViaLKAS")
-
-    holiday_themes = self.params.get_bool("HolidayThemes")
-    toggle.current_holiday_theme = self.params.get("CurrentHolidayTheme", encoding='utf-8') if holiday_themes else None
 
     lane_change_customizations = self.params.get_bool("LaneChangeCustomizations")
     toggle.lane_change_delay = self.params.get_int("LaneChangeTime") if lane_change_customizations else 0
@@ -290,7 +290,6 @@ class FrogPilotVariables:
     toggle.offset3 = self.params.get_int("Offset3") * speed_conversion if toggle.speed_limit_controller else 0
     toggle.offset4 = self.params.get_int("Offset4") * speed_conversion if toggle.speed_limit_controller else 0
     toggle.set_speed_limit = toggle.speed_limit_controller and self.params.get_bool("SetSpeedLimit")
-    toggle.speed_limit_alert = toggle.speed_limit_controller and self.params.get_bool("SpeedLimitChangedAlert")
     toggle.speed_limit_confirmation_higher = toggle.speed_limit_controller and self.params.get_bool("SLCConfirmationHigher")
     toggle.speed_limit_confirmation_lower = toggle.speed_limit_controller and self.params.get_bool("SLCConfirmationLower")
     speed_limit_controller_override = self.params.get_int("SLCOverride") if toggle.speed_limit_controller else 0
